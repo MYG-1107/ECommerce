@@ -1,11 +1,8 @@
-name: Deploy Blazor Client to GitHub Pages
+name: Deploy Blazor WASM to GitHub Pages
 
 on:
   push:
     branches: [ "main" ]
-    paths:
-      - "src/ECommerce.Client/**"
-      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 permissions:
@@ -14,7 +11,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: "pages"
   cancel-in-progress: true
 
 jobs:
@@ -27,25 +24,24 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: '8.0.x'
 
       - name: Restore
         run: dotnet restore ECommerce.sln
 
-      - name: Set base href for GitHub Pages
-        run: |
-          sed -i 's|<base href="/" />|<base href="/ECommerce/" />|g' src/ECommerce.Client/wwwroot/index.html
+      - name: Publish Blazor WebAssembly
+        run: dotnet publish src/ECommerce.Client/ECommerce.Client.csproj -c Release -o publish
 
-      - name: Publish Blazor WASM
-        run: dotnet publish src/ECommerce.Client/ECommerce.Client.csproj -c Release -o published-client
+      - name: Add SPA fallback for GitHub Pages
+        run: cp publish/wwwroot/index.html publish/wwwroot/404.html
 
-      - name: Create SPA fallback
-        run: cp published-client/wwwroot/index.html published-client/wwwroot/404.html
+      - name: Disable Jekyll
+        run: touch publish/wwwroot/.nojekyll
 
-      - name: Upload pages artifact
+      - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: published-client/wwwroot
+          path: publish/wwwroot
 
   deploy:
     environment:
