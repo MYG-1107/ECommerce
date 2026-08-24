@@ -1,0 +1,9 @@
+@page "/products/{slug}"
+
+<h1>Product Details</h1>
+<p>Dynamic product details for <code>@slug</code> will be loaded from API in later iterations.</p>
+
+@code {
+    [Parameter]
+    public string slug { get; set; } = string.Empty;
+}
